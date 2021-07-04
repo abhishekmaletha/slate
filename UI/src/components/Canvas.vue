@@ -50,57 +50,57 @@
                 this.tool = this.createTool(this.scope);
 
                 this.tool.onMouseDown = (event) => {
-                    // init path
-                    self.path = self.pathCreate(self.scope);
-                    // add point to path
-                    self.path.add(event.point);
+                    this.drawOnMouseDown(self, event);
                     this.socket.emit("send", {point:event.point, name:'start'});
                     console.log('data sent started');
                 };
 
                 this.tool.onMouseDrag = (event) => {
-                    self.path.add(event);
+                    this.drawOnMouseDrag(self,event);
                     this.socket.emit("send", {point:event.point, name:'continue'});
-                    console.log('data sent continue', event.point);
+                    console.log('data sent continue');
                 };
                 
                 this.tool.onMouseUp = (event) => {
-                    self.path.add(event.point);
+                    // self.path.add(event.point);
+                    this.drawOnMouseUp(self,event);
                     this.socket.emit("send", {point:event.point, name:'finish'});
                     console.log('data sent finish');
                 }
+                // this.socket.on('draw',data => {
+                //     this.drawOther(data);
+                // });
                 this.socket.on('draw',data => {
-                    this.drawOther(data);
+                    if(data.name === 'start') {
+                        console.log('data recieved started');
+                        this.drawOnMouseDown(self,data);
+                    }
+                    else if(data.name === 'continue') {
+                        console.log('data recieved continue');
+                        this.drawOnMouseDrag(self,data)
+                    }
+                    else if(data.name === 'finish') {
+                        console.log('data recieved finished');
+                        this.drawOnMouseUp(self,data);
+                    }
                 });
             },
-
-            drawOther(data) {
-                let self = this;
-                if(data.name === 'start') {
-                this.tool = this.createTool(this.scope);
-                }
-
-                if(data.name === 'start') {
-                    // init path
-                    self.path = self.pathCreate(self.scope);
+            drawOnMouseDown (self,event) {
+                self.path = self.pathCreate(self.scope);
                     // add point to path
-                    self.path.add(data.point);
-                    console.log('data recived start');
-                } else if(data.name === 'continue') {
-                    self.path.add(data.point);
-                    console.log('data recived continue');
-                } else if(data.name === 'finish') {
-                    self.path.add(data.point);
-                    console.log('data recived finish');
-                }
+                self.path.add(event.point);
             },
+            drawOnMouseDrag (self,event) {
+                self.path.add(event.point);
+            },
+            drawOnMouseUp (self,event) {
+                self.path.add(event.point);
+            }
         },
         mounted() {
             this.scope = new paper.PaperScope();
             this.scope.setup(this.canvasId);
             this.draw();
-            this.sessionId = this.socket.id;
-            // console.log('seesion id ', this.sessionId);
         }, 
 };
 </script>
