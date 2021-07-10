@@ -1,119 +1,127 @@
 <template>
-    <div>
-        <canvas :id="canvasId" class="canvas-style" v-on:mousedown="draw"
-        />
-    </div>
+  <div>
+    <canvas
+      :id="canvasId"
+      class="canvas-style"
+      v-on:mousedown="freeHandOwn"
+      resize
+    />
+  </div>
 </template>
 
 <script>
-    // TODO: move all of this logic to master
-    // packages
-    const paper = require('paper');
-    import io from "socket.io-client";
-    export default {
-        name: "Canvas",
-        props: ['canvasId'],
-        data: () => ({
-            path: null,
-            scope: null,
-            socket: io.connect("http://localhost:4000"),
-            isDrawing: false,
-            sessionId: null
-        }),
-        methods: {
-            reset() {
-                console.log('reset');
-                this.scope.project.activeLayer.removeChildren();
-            },
-            pathCreate(scope) {
-                console.log('path created');
-                scope.activate();
-                return new paper.Path({
-                    strokeColor: "#000000",
-                    strokeJoin: 'round',
-                    strokeWidth: 1.5
-                })
-            },
-            createTool(scope) {
-                console.log('create tool');
-                scope.activate();
-                return new paper.Tool();
-            },
-            draw() {
-                console.log('obj ',this.socket,' session id ', this.socket.id);
-                // var canvas = document.getElementById(`${this.canvasId}`);
-                // console.log('inside draw()');
-                // in order to access functions in nested tool
-                let self = this;
+// TODO: move all of this logic to master
+// packages
+const paper = require("paper");
+import io from "socket.io-client";
+import { Point } from "paper/dist/paper-core";
+export default {
+  name: "Canvas",
+  props: ["canvasId"],
+  data: () => ({
+    socket: io.connect("http://localhost:4000"),
+    setCanvas: false,
+    patha: null,
+  }),
+  methods: {
+    intiate() {
+      console.log("hello");
+      var canvas = document.getElementById(this.canvasId);
+      // Create an empty project and a view for the canvas:
+      paper.setup(canvas);
+    },
+    freeHandOwn() {
+      if (!this.setCanvas) {
+        this.intiate();
+        this.setCanvas = true;
+      }
+      // Create a Paper.js Path to draw a line into it:
+      var path = null;
+      paper.view.draw();
+      var tool = new paper.Tool();
 
-                // create drawing tool
-                this.tool = this.createTool(this.scope);
+      tool.onMouseDown = (event) => {
+        // console.log('points ', event.point);
+        // path = new paper.Path();
+        path = new paper.Path();
+        path.strokeColor = "black";
+        path.add(event.point);
+        console.log("data sent start");
+        this.socket.emit("send", {
+          point: event.point,
+          name: "start",
+          id: "maletha",
+        });
+      };
 
-                this.tool.onMouseDown = (event) => {
-                    this.drawOnMouseDown(self, event);
-                    this.socket.emit("send", {point:event.point, name:'start'});
-                    console.log('data sent started');
-                };
+      tool.onMouseDrag = (event) => {
+        // console.log('points ', event.point);
+        path.add(event.point);
+        console.log("data sent continue");
+        this.socket.emit("send", {
+          point: event.point,
+          name: "continue",
+          id: "maletha",
+        });
+      };
 
-                this.tool.onMouseDrag = (event) => {
-                    this.drawOnMouseDrag(self,event);
-                    this.socket.emit("send", {point:event.point, name:'continue'});
-                    console.log('data sent continue');
-                };
-                
-                this.tool.onMouseUp = (event) => {
-                    // self.path.add(event.point);
-                    this.drawOnMouseUp(self,event);
-                    this.socket.emit("send", {point:event.point, name:'finish'});
-                    console.log('data sent finish');
-                }
-                // this.socket.on('draw',data => {
-                //     this.drawOther(data);
-                // });
-                this.socket.on('draw',data => {
-                    if(data.name === 'start') {
-                        console.log('data recieved started');
-                        this.drawOnMouseDown(self,data);
-                    }
-                    else if(data.name === 'continue') {
-                        console.log('data recieved continue');
-                        this.drawOnMouseDrag(self,data)
-                    }
-                    else if(data.name === 'finish') {
-                        console.log('data recieved finished');
-                        this.drawOnMouseUp(self,data);
-                    }
-                });
-            },
-            drawOnMouseDown (self,event) {
-                self.path = self.pathCreate(self.scope);
-                    // add point to path
-                self.path.add(event.point);
-            },
-            drawOnMouseDrag (self,event) {
-                self.path.add(event.point);
-            },
-            drawOnMouseUp (self,event) {
-                self.path.add(event.point);
-            }
-        },
-        mounted() {
-            this.scope = new paper.PaperScope();
-            this.scope.setup(this.canvasId);
-            this.draw();
-        }, 
+      tool.onMouseUp = (event) => {
+        // console.log('points ', event.point);
+        path.add(event.point);
+        console.log("data sent finish");
+        this.socket.emit("send", {
+          point: event.point,
+          name: "finish",
+          id: "maletha",
+        });
+      };
+
+      this.socket.on("draw", (data) => {
+        this.freeHandOther(data);
+      });
+    },
+    freeHandOther(data) {
+      if (!this.setCanvas) {
+        this.intiate();
+        this.setCanvas = true;
+      }
+      if (data) {
+        var x = data.point[1];
+        var y = data.point[2];
+        if (data.name === "start") {
+          this.patha = new paper.Path();
+          this.patha.strokeColor = "black";
+          this.patha.add(new Point(x, y));
+        } else if (data.name === "continue") {
+          this.patha.add(new Point(x, y));
+          console.log(`data recieving`, x, " ", y);
+        } else if (data.name === "finish") {
+          // this.patha.add(new Point(x, y));
+          this.patha = null;
+        }
+        paper.view.draw();
+      }
+    },
+  },
+  mounted() {
+    // this.intiate();
+    this.freeHandOwn();
+    this.freeHandOther();
+    // this.patha = new paper.Path();
+    // this.patha.strokeColor = 'black';
+  },
 };
 </script>
 
 <style scoped>
-    .canvas-style {
-        cursor: crosshair;
-        width: 100% !important;
-        height: 500px !important;
-        border: 5px solid black;
-        border-radius: 10px;
-        display: block;
-        margin: auto;
-        box-shadow: 0 10px 8px -8px black;
-    }
+.canvas-style {
+  cursor: crosshair;
+  width: 100% !important;
+  height: 500px !important;
+  border: 5px solid black;
+  border-radius: 10px;
+  display: block;
+  margin: auto;
+  box-shadow: 0 10px 8px -8px black;
+}
 </style>
