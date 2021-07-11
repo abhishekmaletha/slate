@@ -1,11 +1,17 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Master from ".././components/Master"
+import landing from ".././components/landing"
 const routes = [
   {
     path: '/',
-    name: 'Master',
-    component: Master,
+    name: 'landing',
+    component: landing,
   },
+  {
+    path: '/master',
+    name: 'Master',
+    component: Master
+  }
 ];
 
 const router = createRouter({
