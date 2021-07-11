@@ -28,8 +28,13 @@ export default {
     center: null,
     radius: null,
     new_radius: null,
+    group_circle: null,
   }),
   methods: {
+    reset() {
+      paper.project.activeLayer.removeChildren();
+      paper.view.draw();
+    },
     rectangleMode() {
       console.log("rectangleOwn");
       this.mode = "rectangle";
@@ -107,7 +112,8 @@ export default {
             new Point(event.point)
           );
           var myPath = new paper.Path.Rectangle(rectangle);
-          myPath.fillColor = "#e9e9ff";
+          myPath.selected = true;
+          myPath.strokeColor = "black";
           group.addChild(myPath);
           this.socket.emit("send", {
             point: event.point,
@@ -121,6 +127,7 @@ export default {
             start_x - event.point.x
           );
           myCircle.strokeColor = "black";
+          myCircle.selected = true;
           group.addChild(myCircle);
           this.socket.emit("send", {
             point: event.point,
@@ -145,8 +152,7 @@ export default {
             new Point(event.point)
           );
           var pathRect = new paper.Path.Rectangle(rectangle);
-          pathRect.fillColor = "#e9e9ff";
-          pathRect.selected = true;
+          pathRect.strokeColor = "black";
           this.socket.emit("send", {
             point: event.point,
             name: "finish",
@@ -154,7 +160,7 @@ export default {
           });
         } else if (this.mode === "circle") {
           var myCircle = new paper.Path.Circle(
-            new Point(start_x, start_x),
+            new Point(start_x, start_y),
             start_x - event.point.x
           );
           myCircle.strokeColor = "black";
@@ -201,9 +207,36 @@ export default {
             new Point(data.point[1], data.point[2])
           );
           var myPath = new paper.Path.Rectangle(rectangle);
-          myPath.fillColor = "#e9e9ff";
+          // myPath.fillColor = "#e9e9ff";
+          myPath.strokeColor = "black";
           this.group_rectangle.addChild(myPath);
         } else if (data.name === "finish") {
+          this.path_other = null;
+          this.group_rectangle = null;
+        }
+      } else if (data && data.mode === "circle") {
+        console.log("circle data recieved");
+        if (data.name === "start") {
+          (this.group_circle = new paper.Group()),
+            (this.path_other = {
+              start_x: data.point[0],
+              start_y: data.point[1],
+            });
+          console.log("path_Other", this.path_other);
+        } else if (data.name === "continue") {
+          this.group_circle.removeChildren();
+          var myCircle = new paper.Path.Circle(
+            new Point(this.path_other.start_x, this.path_other.start_y),
+            this.path_other.start_x - data.point[1]
+          );
+          myCircle.strokeColor = "black";
+          this.group_circle.addChild(myCircle);
+        } else if (data.name === "finish") {
+          var myCircleFinal = new paper.Path.Circle(
+            new Point(this.path_other.start_x, this.path_other.start_y),
+            this.path_other.start_x - data.point[1]
+          );
+          myCircleFinal.strokeColor = "black";
           this.path_other = null;
           this.group_rectangle = null;
         }
