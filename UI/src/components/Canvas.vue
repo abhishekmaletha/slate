@@ -13,13 +13,13 @@
 // TODO: move all of this logic to master
 // packages
 const paper = require("paper");
-import io from "socket.io-client";
+// import io from "$socket.io-client";
 import { Point } from "paper/dist/paper-core";
 export default {
   name: "Canvas",
   props: ["canvasId"],
   data: () => ({
-    socket: io.connect("http://localhost:4000"),
+    // $socket: io.connect("http://localhost:4000"),
     setCanvas: false,
     path_other: null,
     group_rectangle: null,
@@ -48,7 +48,7 @@ export default {
       this.mode = "circle";
     },
     intiate() {
-      console.log("hello");
+      // console.log("hello");
       var canvas = document.getElementById(this.canvasId);
       // Create an empty project and a view for the canvas:
       paper.setup(canvas);
@@ -72,7 +72,7 @@ export default {
           path.strokeColor = "black";
           path.add(event.point);
           console.log("data sent start");
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "start",
             mode: "freehand",
@@ -80,7 +80,7 @@ export default {
         } else if (this.mode === "rectangle") {
           start_x = event.point.x;
           start_y = event.point.y;
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: [start_x, start_y],
             name: "start",
             mode: "rectangle",
@@ -88,7 +88,7 @@ export default {
         } else if (this.mode === "circle") {
           start_x = event.point.x;
           start_y = event.point.y;
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: [start_x, start_y],
             name: "start",
             mode: "circle",
@@ -100,7 +100,7 @@ export default {
         if (this.mode === "freehand") {
           path.add(event.point);
           console.log("data sent continue");
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "continue",
             mode: "freehand",
@@ -115,7 +115,7 @@ export default {
           myPath.selected = true;
           myPath.strokeColor = "black";
           group.addChild(myPath);
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "continue",
             mode: "rectangle",
@@ -129,7 +129,7 @@ export default {
           myCircle.strokeColor = "black";
           myCircle.selected = true;
           group.addChild(myCircle);
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "continue",
             mode: "circle",
@@ -141,7 +141,7 @@ export default {
         if (this.mode === "freehand") {
           path.add(event.point);
           console.log("data sent finish");
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "finish",
             mode: "freehand",
@@ -153,7 +153,7 @@ export default {
           );
           var pathRect = new paper.Path.Rectangle(rectangle);
           pathRect.strokeColor = "black";
-          this.socket.emit("send", {
+          this.$socket.emit("send", {
             point: event.point,
             name: "finish",
             mode: "rectangle",
@@ -167,7 +167,8 @@ export default {
         }
       };
 
-      this.socket.on("draw", (data) => {
+      this.$socket.on("draw", (data) => {
+        console.log("socket.on function");
         this.drawOther(data);
       });
     },

@@ -4,6 +4,7 @@
     <div class="row mt-5">
       <div class="col-5" />
       <div class="col-2">
+        <p>share this link to collab: {{ url }}</p>
         <button class="btn btn-primary btn-block" @click.prevent="reset">
           CLEAR
         </button>
@@ -38,6 +39,7 @@ export default {
   data: () => ({
     buttons: ["Simple", "Separate", "Replicated"],
     single: true,
+    url: "",
   }),
   methods: {
     reset() {
@@ -55,6 +57,20 @@ export default {
   },
   components: {
     Canvas,
+  },
+  mounted() {
+    // console.log(window.location.href);
+  },
+  created() {
+    let idxId = ("" + window.location.href).indexOf("id=") + 3;
+    let idxName = ("" + window.location.href).indexOf("name=") - 1;
+    this.url =
+      "http://localhost:8080/share/id=" +
+      ("" + window.location.href).substring(idxId, idxName);
+    let roomId = ("" + window.location.href).substring(idxId, idxName);
+    let userName = ("" + window.location.href).substring(idxName + 6);
+    this.$socket.emit("joinRoom", { user: userName, room: roomId });
+    console.log(roomId, " ", userName);
   },
 };
 </script>
