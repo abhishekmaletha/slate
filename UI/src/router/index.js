@@ -8,10 +8,15 @@ const routes = [
     component: landing,
   },
   {
-    path: '/master',
+    path: '/master/:id?',
     name: 'Master',
     component: Master
-  }
+  },
+  {
+    path: '/share/:id?',
+    name: 'Share',
+    component: () => import('.././components/share'),
+  },
 ];
 
 const router = createRouter({
