@@ -5,21 +5,43 @@ var io = require("socket.io")(http, {
         origin: "*",
     },
 });
-let connections = [];
+// let connections = [];
+const {
+    userJoin,
+    showUsers,
+    getCurrentUser,
+    userLeave,
+    getRoomUsers
+} = require("./utils");
+
 io.on("connect", (socket) => {
-    connections.push(socket);
-    console.log(`${socket.id} has connected`);
-    socket.on('send', (data)=> {
-        connections.forEach(con => {
-            if(con.id != socket.id)
-            con.emit('draw', data);
-            console.log('data in server', data);
-        })
+    // connections.push(socket);
+    socket.on('joinRoom', (data) => {
+        console.log(data);
+        const user = userJoin(socket.id, data.user, data.room);
+        socket.join(user.room);
+        console.log(`${user.username} has joined ${user.room}`);
+
+        // Send users and room info
+        io.to(user.room).emit('roomUsers', {
+            room: user.room,
+            users: getRoomUsers(user.room)
+        });
+        // showUsers();
+    });
+    // console.log(`${socket.id} has connected`);
+    socket.on('send', (data) => {
+        showUsers();
+        console.log(socket.id);
+        console.log('data in sever ', data);
+        const user = getCurrentUser(socket.id);
+        console.log('curr user', user);
+        io.to(user.room).emit('draw', data);
     });
     //Disconnect
     socket.on("disconnect", () => {
         console.log(`${socket.id} was disconnected`);
-        connections=connections.filter((con) => con.id!==socket.id);
+        // connections = connections.filter((con) => con.id !== socket.id);
     });
 });
 

@@ -1,51 +1,50 @@
 <template>
-  <v-form ref="form" v-model="valid" lazy-validation>
-    <v-text-field
-      v-model="name"
-      :counter="10"
-      :rules="nameRules"
-      label="Name"
-      required
-    ></v-text-field>
-
-    <v-text-field
-      v-model="email"
-      :rules="emailRules"
-      label="E-mail"
-      required
-    ></v-text-field>
-
-    <v-select
-      v-model="select"
-      :items="items"
-      :rules="[(v) => !!v || 'Item is required']"
-      label="Item"
-      required
-    ></v-select>
-
-    <v-checkbox
-      v-model="checkbox"
-      :rules="[(v) => !!v || 'You must agree to continue!']"
-      label="Do you agree?"
-      required
-    ></v-checkbox>
-
-    <v-btn :disabled="!valid" color="success" class="mr-4" @click="validate">
-      Validate
-    </v-btn>
-
-    <v-btn color="error" class="mr-4" @click="reset"> Reset Form </v-btn>
-
-    <v-btn color="warning" @click="resetValidation"> Reset Validation </v-btn>
-  </v-form>
+  <div>
+    <p>room id is rebels</p>
+    <input
+      v-model="user"
+      type="text"
+      name=""
+      id="serInput"
+      placeholder="name"
+    />
+    <input
+      v-model="code"
+      type="text"
+      name=""
+      id="roomCodeInput"
+      placeholder="room code"
+    />
+    <p>{{ user }} will join {{ code }}</p>
+    <router-link to="/master">
+      <button @click="start">join</button></router-link
+    >
+  </div>
 </template>
 
 <script>
 // import master from "../components/Master.vue";
+// import io from "socket.io-client";
 export default {
   name: "landing",
   components: {
     // master,
+  },
+  data: () => ({
+    // socket: io.connect("http://localhost:4000"),
+    code: "",
+    user: "",
+  }),
+  methods: {
+    start() {
+      let username = this.user;
+      let code = this.code;
+      console.log("user: ", this.user, " code: ", this.code);
+      this.$socket.emit("joinRoom", { user: username, room: code });
+    },
+  },
+  mounted() {
+    console.log("global ", this.$globalVariable);
   },
 };
 </script>
