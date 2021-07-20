@@ -71,6 +71,7 @@ export default {
     let userName = ("" + window.location.href).substring(idxName + 6);
     this.$socket.emit("joinRoom", { user: userName, room: roomId });
     console.log(roomId, " ", userName);
+    console.log('url : ', this.url);
   },
 };
 </script>
