@@ -47,6 +47,7 @@ export default {
   },
   mounted() {
     this.code = uniqid();
+    console.log("1 ", process.env.VUE_APP_BACKEND, " 2 ", process.env.VUE_APP_SHARE);
   },
 };
 </script>
