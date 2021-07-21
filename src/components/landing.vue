@@ -49,6 +49,7 @@ export default {
     this.code = uniqid();
     console.log("1: ", process.env.VUE_APP_BACKEND, " 2: ", process.env.VUE_APP_SHARE);
     console.log('mode ',process.env.NODE_ENV);
+    console.log('base url ',process.env.BASE_URL);
   },
 };
 </script>

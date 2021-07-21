@@ -65,7 +65,7 @@ export default {
     let idxId = ("" + window.location.href).indexOf("id=") + 3;
     let idxName = ("" + window.location.href).indexOf("name=") - 1;
     this.url =
-      ("" + window.location.href).substring(0, idxId) +
+      process.env.VUE_APP_SHARE +
       ("" + window.location.href).substring(idxId, idxName);
     let roomId = ("" + window.location.href).substring(idxId, idxName);
     let userName = ("" + window.location.href).substring(idxName + 6);
